@@ -34,7 +34,7 @@ public class ClassicElasticsearchPublisher extends AbstractElasticsearchPublishe
             gen.writeRawValue(event.getFormattedMessage());
         } else {
             String formattedMessage = event.getFormattedMessage();
-            if (settings.getMaxMessageSize() > 0 && formattedMessage.length() > settings.getMaxMessageSize()) {
+            if (formattedMessage != null && settings.getMaxMessageSize() > 0 && formattedMessage.length() > settings.getMaxMessageSize()) {
                 formattedMessage = formattedMessage.substring(0, settings.getMaxMessageSize()) + "..";
             }
             gen.writeObjectField("message", formattedMessage);
