@@ -29,7 +29,7 @@ class PropertySerializer<T> {
         String writtenValue = value;
         if (writtenValue != null && writtenValue.length() > 999980)
         {
-            writtenValue = value.substring(0, 999980) + "... (abrv.)";
+            writtenValue = writtenValue.substring(0, 999980) + "... (abrv.)";
         }
         jsonGenerator.writeObjectField(propertyAndEncoder.getName(), writtenValue);
     }

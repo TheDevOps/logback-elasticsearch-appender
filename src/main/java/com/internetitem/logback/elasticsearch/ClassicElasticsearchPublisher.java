@@ -42,7 +42,12 @@ public class ClassicElasticsearchPublisher extends AbstractElasticsearchPublishe
 
         if(settings.isIncludeMdc()) {
             for (Map.Entry<String, String> entry : event.getMDCPropertyMap().entrySet()) {
-                gen.writeObjectField(entry.getKey(), entry.getValue());
+                String writtenValue = entry.getValue();
+                if (writtenValue != null && writtenValue.length() > 999980)
+                {
+                    writtenValue = writtenValue.substring(0, 999980) + "... (abrv.)";
+                }
+                gen.writeObjectField(entry.getKey(), writtenValue);
             }
         }
     }
