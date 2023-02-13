@@ -77,4 +77,11 @@ public class ElasticsearchOutputAggregator extends Writer {
         // No-op
     }
 
+    public void clearData()
+    {
+        for (SafeWriter writer : writers) {
+            writer.clearData();
+        }
+    }
+
 }

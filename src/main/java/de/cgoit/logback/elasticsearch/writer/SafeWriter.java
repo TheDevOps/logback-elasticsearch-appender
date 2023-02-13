@@ -10,4 +10,6 @@ public interface SafeWriter {
     Set<Integer> sendData() throws IOException;
 
     boolean hasPendingData();
+
+    void clearData();
 }

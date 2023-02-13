@@ -141,39 +141,42 @@ public abstract class AbstractElasticsearchPublisher<T> implements Runnable {
                 return;
             }
         }
-        int currentTry = 1;
+        int currentTry = 0;
         int maxRetries = settings.getMaxRetries();
+        long lastErrorTime = 0;
+        long processStartTime = System.currentTimeMillis();
         while (true) {
             try {
-                Thread.sleep(settings.getSleepTime());
-
+                Thread.sleep(settings.getWriteSleepTime());
                 List<T> eventsCopy = null;
                 synchronized (lock) {
                     if (!events.isEmpty()) {
                         eventsCopy = events;
                         events = new LinkedList<>();
-                        currentTry = 1;
-                    }
-
-                    if (eventsCopy == null) {
-                        if (!outputAggregator.hasPendingData()) {
-                            // all done
-                            working.set(false);
-                            return;
-                        } else {
-                            // Nothing new, must be a retry
-                            if (currentTry > maxRetries) {
-                                // Oh well, better luck next time
-                                working.set(false);
-                                DATE_FORMAT.remove();
-                                return;
-                            }
-                        }
                     }
                 }
 
                 if (eventsCopy != null) {
                     serializeEvents(jsonGenerator, eventsCopy, propertyList);
+                }
+
+                long threadRuntime = System.currentTimeMillis() - processStartTime;
+                // check if the current thread is still in the general sleep time or in a previous error backoff
+                if (threadRuntime < settings.getSleepTime() || isInErrorBackoff(lastErrorTime, currentTry)) {
+                    continue;
+                }
+
+                if (currentTry >= maxRetries) {
+                    // Oh well, better luck next time
+                    errorReporter.logWarning("Error sending data to elastic within " + maxRetries + " attempts. Giving up and considering data lost.");
+                    // Remove the data, it really doesn't matter much if old or new logs are lost if elastic
+                    // is unreachable for an extended amount of time, and this way we usually will prevent
+                    // too big file from being sent at once
+                    outputAggregator.clearData();
+                    processStartTime = System.currentTimeMillis();
+                    currentTry = 0;
+                    lastErrorTime = 0;
+                    continue;
                 }
 
                 try {
@@ -191,24 +194,33 @@ public abstract class AbstractElasticsearchPublisher<T> implements Runnable {
                         }
                     }
                 } catch (IOException e) {
-                    // Fatal error in sendData
+                    // Fatal error in sendData, increase counter and flag error backoff
                     currentTry++;
-                    Thread.sleep(settings.getSleepTimeAfterError());
+                    lastErrorTime = System.currentTimeMillis();
                 }
             } catch (InterruptedException interruptedException) {
-                working.set(false);
+                synchronized (lock) {
+                    working.set(false);
+                }
+                DATE_FORMAT.remove();
                 Thread.currentThread().interrupt();
+                return;
             } catch (Exception e) {
                 errorReporter.logError("Internal error handling log data: " + e.getMessage(), e);
                 currentTry++;
-                try {
-                    Thread.sleep(settings.getSleepTimeAfterError());
-                } catch (InterruptedException interruptedException) {
-                    working.set(false);
-                    Thread.currentThread().interrupt();
-                }
+                lastErrorTime = System.currentTimeMillis();
             }
+            processStartTime = System.currentTimeMillis();
         }
+    }
+
+    private boolean isInErrorBackoff(long lastErrorTime, int currentTry) {
+        // if no previous error time is given
+        if (lastErrorTime == 0) {
+            return false;
+        }
+        // otherwise check if the current desired sleep time is bigger than the time since the last error
+        return settings.getSleepTimeAfterError() * (long) currentTry > System.currentTimeMillis() - lastErrorTime;
     }
 
     private void serializeEvents(JsonGenerator gen, List<T> eventsCopy, List<AbstractPropertyAndEncoder<T>> propertyList) throws IOException {

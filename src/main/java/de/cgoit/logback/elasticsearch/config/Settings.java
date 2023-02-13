@@ -14,6 +14,7 @@ public class Settings {
 
     private int sleepTime = 250;
     private int sleepTimeAfterError = 15_000;
+    private int writeSleepTime = 50;
     private int maxRetries = 3;
     private int connectTimeout = 30_000;
     private int readTimeout = 30_000;
@@ -23,7 +24,7 @@ public class Settings {
     private boolean includeMdc;
     private String excludedMdcKeys;
     private boolean rawJsonMessage;
-    private int maxQueueSize = 100 * 1024 * 1024;
+    private int maxQueueSize = 50 * 1024 * 1024;
     private Authentication authentication;
     private int maxMessageSize = -1;
     private boolean enableContextMap;
@@ -58,6 +59,17 @@ public class Settings {
             sleepTime = 100;
         }
         this.sleepTime = sleepTime;
+    }
+
+    public int getWriteSleepTime() {
+        return writeSleepTime;
+    }
+
+    public void setWriteSleepTime(int writeSleepTime) {
+        if (writeSleepTime < 50) {
+            writeSleepTime = 50;
+        }
+        this.writeSleepTime = writeSleepTime;
     }
 
     public int getSleepTimeAfterError() {
@@ -124,6 +136,10 @@ public class Settings {
     }
 
     public void setMaxQueueSize(int maxQueueSize) {
+        if (maxQueueSize > 50 * 1024 * 1024)
+        {
+            maxQueueSize = 50 * 1024 * 1024;
+        }
         this.maxQueueSize = maxQueueSize;
     }
 

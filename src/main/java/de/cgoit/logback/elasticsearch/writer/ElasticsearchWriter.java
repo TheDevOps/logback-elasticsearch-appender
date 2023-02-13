@@ -29,7 +29,7 @@ public class ElasticsearchWriter implements SafeWriter {
         objectReader = mapper.readerFor(Map.class);
     }
 
-    private final StringBuilder sendBuffer;
+    private StringBuilder sendBuffer;
     private final ErrorReporter errorReporter;
     private final Settings settings;
     private final Collection<HttpRequestHeader> headerList;
@@ -136,6 +136,15 @@ public class ElasticsearchWriter implements SafeWriter {
         if (!bufferExceeded && sendBuffer.length() >= settings.getMaxQueueSize()) {
             errorReporter.logWarning("Send queue maximum size exceeded - log messages will be lost until the buffer is cleared");
             bufferExceeded = true;
+        }
+    }
+
+    @Override
+    public void clearData() {
+        sendBuffer.setLength(0);
+        if (bufferExceeded) {
+            errorReporter.logInfo("Send queue cleared - log messages will no longer be lost");
+            bufferExceeded = false;
         }
     }
 

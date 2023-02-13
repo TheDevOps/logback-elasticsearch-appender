@@ -73,6 +73,7 @@ public class ElasticesearchPublisherTest {
     private void setupPublisher(int maxEvents) throws IOException {
         Settings settings = new Settings();
         settings.setSleepTime(1000 * 60 * 60); // since we don't want to really publish the events
+        settings.setWriteSleepTime(1000 * 60 * 60); // since we don't want to really publish the events
         settings.setLoggerName(LOGGER_NAME);
         settings.setMaxEvents(maxEvents);
 
