@@ -5,7 +5,7 @@ import ch.qos.logback.core.Context;
 import com.fasterxml.jackson.core.JsonGenerator;
 import de.cgoit.logback.elasticsearch.config.ElasticsearchProperties;
 import de.cgoit.logback.elasticsearch.config.HttpRequestHeaders;
-import de.cgoit.logback.elasticsearch.config.Property;
+import de.cgoit.logback.elasticsearch.config.EsProperty;
 import de.cgoit.logback.elasticsearch.config.Settings;
 import de.cgoit.logback.elasticsearch.util.AbstractPropertyAndEncoder;
 import de.cgoit.logback.elasticsearch.util.AccessPropertyAndEncoder;
@@ -20,7 +20,7 @@ public class AccessElasticsearchPublisher extends AbstractElasticsearchPublisher
     }
 
     @Override
-    protected AbstractPropertyAndEncoder<IAccessEvent> buildPropertyAndEncoder(Context context, Property property) {
+    protected AbstractPropertyAndEncoder<IAccessEvent> buildPropertyAndEncoder(Context context, EsProperty property) {
         return new AccessPropertyAndEncoder(property, context);
     }
 

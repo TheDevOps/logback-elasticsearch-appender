@@ -1,15 +1,15 @@
 package de.cgoit.logback.elasticsearch.config;
 
-public class Property {
+public class EsProperty {
     private String name;
     private String value;
     private boolean allowEmpty;
     private Type type = Type.STRING;
 
-    public Property() {
+    public EsProperty() {
     }
 
-    public Property(String name, String value, boolean allowEmpty) {
+    public EsProperty(String name, String value, boolean allowEmpty) {
         this.name = name;
         this.value = value;
         this.allowEmpty = allowEmpty;

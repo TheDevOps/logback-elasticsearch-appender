@@ -2,13 +2,13 @@ package de.cgoit.logback.elasticsearch.util;
 
 import ch.qos.logback.core.Context;
 import ch.qos.logback.core.pattern.PatternLayoutBase;
-import de.cgoit.logback.elasticsearch.config.Property;
+import de.cgoit.logback.elasticsearch.config.EsProperty;
 
 public abstract class AbstractPropertyAndEncoder<T> {
-    private final Property property;
+    private final EsProperty property;
     private final PatternLayoutBase<T> layout;
 
-    public AbstractPropertyAndEncoder(Property property, Context context) {
+    public AbstractPropertyAndEncoder(EsProperty property, Context context) {
         this.property = property;
 
         this.layout = getLayout();
@@ -32,7 +32,7 @@ public abstract class AbstractPropertyAndEncoder<T> {
         return property.isAllowEmpty();
     }
 
-    public Property.Type getType() {
+    public EsProperty.Type getType() {
         return property.getType();
     }
 }
