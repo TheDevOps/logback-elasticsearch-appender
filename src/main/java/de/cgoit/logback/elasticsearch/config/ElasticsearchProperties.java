@@ -8,7 +8,7 @@ public class ElasticsearchProperties {
     private final List<EsProperty> properties;
 
     public ElasticsearchProperties() {
-        this.properties = new ArrayList<>();
+        properties = new ArrayList<>();
     }
 
     public List<EsProperty> getProperties() {
@@ -16,6 +16,10 @@ public class ElasticsearchProperties {
     }
 
     public void addProperty(EsProperty property) {
+        properties.add(property);
+    }
+
+    public void addEsProperty(EsProperty property) {
         properties.add(property);
     }
 
