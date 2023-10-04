@@ -38,11 +38,11 @@ public class ElasticsearchWriter implements SafeWriter {
     public ElasticsearchWriter(ErrorReporter errorReporter, Settings settings, HttpRequestHeaders headers) {
         this.errorReporter = errorReporter;
         this.settings = settings;
-        this.headerList = headers != null && headers.getHeaders() != null
+        headerList = headers != null && headers.getHeaders() != null
                 ? headers.getHeaders()
                 : Collections.emptyList();
 
-        this.sendBuffer = new StringBuilder();
+        sendBuffer = new StringBuilder();
     }
 
     private static String slurpErrors(HttpURLConnection urlConnection) {
@@ -66,6 +66,7 @@ public class ElasticsearchWriter implements SafeWriter {
         }
     }
 
+    @Override
     public void write(char[] cbuf, int off, int len) {
         if (bufferExceeded) {
             return;
@@ -74,12 +75,13 @@ public class ElasticsearchWriter implements SafeWriter {
         sendBuffer.append(cbuf, off, len);
     }
 
+    @Override
     public Set<Integer> sendData() throws IOException {
         if (sendBuffer.length() <= 0) {
             return null;
         }
 
-        HttpURLConnection urlConnection = (HttpURLConnection) (settings.getUrl().openConnection());
+        HttpURLConnection urlConnection = (HttpURLConnection) settings.getUrl().openConnection();
         try {
             urlConnection.setDoInput(true);
             urlConnection.setDoOutput(true);
@@ -109,6 +111,7 @@ public class ElasticsearchWriter implements SafeWriter {
                 // Marshal response
                 Response response = new Response(objectReader.readValue(urlConnection.getInputStream()));
                 if (response.hasErrors()) {
+                    errorReporter.logWarning("Errors during send: " + response.toString());
                     return response.getFailedItems().keySet();
                 }
             } else {
@@ -128,6 +131,7 @@ public class ElasticsearchWriter implements SafeWriter {
         return null;
     }
 
+    @Override
     public boolean hasPendingData() {
         return sendBuffer.length() != 0;
     }
