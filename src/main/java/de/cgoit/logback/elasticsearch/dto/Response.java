@@ -13,7 +13,7 @@ public class Response {
     private static final String TOOK = "took";
     private static final String ERRORS = "errors";
     private static final String ITEMS = "items";
-    private static final String INDEX = "_index";
+    private static final String CREATE = "create";
     private static final String STATUS = "status";
 
     private final Map<String, Object> response;
@@ -23,11 +23,11 @@ public class Response {
     }
 
     public int getTook() {
-        return (int) response.get(TOOK);
+        return response.containsKey(TOOK) ? (int) response.get(TOOK) : 0;
     }
 
     public boolean hasErrors() {
-        return (boolean) response.get(ERRORS);
+        return response.containsKey(ERRORS) && (boolean) response.get(ERRORS);
     }
 
     public List<Map<String, Object>> getItems() {
@@ -51,7 +51,7 @@ public class Response {
             Map<String, Object> item = items.get(i);
             if (item != null)
             {
-                Map<String, Object> entry = (Map<String, Object>) item.get(INDEX);
+                Map<String, Object> entry = (Map<String, Object>) item.get(CREATE);
                 if (entry != null && (int) entry.get(STATUS) != HttpStatus.SC_CREATED) {
                     result.put(i, entry);
                 }
