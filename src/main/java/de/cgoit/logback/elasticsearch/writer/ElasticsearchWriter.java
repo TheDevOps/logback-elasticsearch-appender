@@ -111,8 +111,9 @@ public class ElasticsearchWriter implements SafeWriter {
                 // Marshal response
                 Response response = new Response(objectReader.readValue(urlConnection.getInputStream()));
                 if (response.hasErrors()) {
-                    errorReporter.logWarning("Errors during send: " + response.toString());
-                    return response.getFailedItems().keySet();
+                    Map<Integer, Map<String, Object>> failedItems = response.getFailedItems();
+                    errorReporter.logWarning("Errors during send. Failed items: " + failedItems);
+                    return failedItems.keySet();
                 }
             } else {
                 String data = slurpErrors(urlConnection);
