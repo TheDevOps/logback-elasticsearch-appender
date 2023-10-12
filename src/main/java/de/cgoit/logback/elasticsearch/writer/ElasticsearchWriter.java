@@ -77,8 +77,9 @@ public class ElasticsearchWriter implements SafeWriter {
 
     @Override
     public Set<Integer> sendData() throws IOException {
+        Set<Integer> failures = null;
         if (sendBuffer.length() <= 0) {
-            return null;
+            return failures;
         }
 
         HttpURLConnection urlConnection = (HttpURLConnection) settings.getUrl().openConnection();
@@ -113,7 +114,7 @@ public class ElasticsearchWriter implements SafeWriter {
                 if (response.hasErrors()) {
                     Map<Integer, Map<String, Object>> failedItems = response.getFailedItems();
                     errorReporter.logWarning("Errors during send. Failed items: " + failedItems);
-                    return failedItems.keySet();
+                    failures = failedItems.keySet();
                 }
             } else {
                 String data = slurpErrors(urlConnection);
@@ -129,7 +130,7 @@ public class ElasticsearchWriter implements SafeWriter {
             bufferExceeded = false;
         }
 
-        return null;
+        return failures;
     }
 
     @Override
