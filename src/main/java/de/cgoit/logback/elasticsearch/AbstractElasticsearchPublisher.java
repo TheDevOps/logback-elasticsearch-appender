@@ -129,6 +129,7 @@ public abstract class AbstractElasticsearchPublisher<T> implements Runnable {
             }
             if (!working.get()) {
                 Thread thread = new Thread(this, THREAD_NAME_PREFIX + THREAD_COUNTER.getAndIncrement());
+                thread.setDaemon(true);
                 thread.start();
             }
         }
