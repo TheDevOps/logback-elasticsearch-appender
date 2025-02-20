@@ -24,11 +24,12 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 public abstract class AbstractElasticsearchPublisher<T> implements Runnable {
 
     public static final String THREAD_NAME_PREFIX = "es-writer-";
-    private static final AtomicInteger THREAD_COUNTER = new AtomicInteger(1);
+    private static final AtomicInteger THREAD_COUNTER = new AtomicInteger(0);
     private static final ThreadLocal<DateFormat> DATE_FORMAT = ThreadLocal.withInitial(() ->
             new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ")
     );
@@ -46,6 +47,8 @@ public abstract class AbstractElasticsearchPublisher<T> implements Runnable {
     protected Settings settings;
     private volatile List<T> events;
     private AtomicBoolean working = new AtomicBoolean(false);
+    private AtomicLong workingTimestamp = new AtomicLong(0);
+    private Long inactiveTimeLimit = 15 * 60 * 1000L;
 
     public AbstractElasticsearchPublisher(Context context, ErrorReporter errorReporter, Settings settings, ElasticsearchProperties properties, HttpRequestHeaders headers) throws IOException {
         this.errorReporter = errorReporter;
@@ -69,8 +72,8 @@ public abstract class AbstractElasticsearchPublisher<T> implements Runnable {
             this.failedEventsWriter = new FailedEventsWriter(settings.getFailedEventsLoggerName());
             this.failedEventsJsonGenerator = jf.createGenerator(failedEventsWriter);
         } else {
-            this.failedEventsWriter = null;
-            this.failedEventsJsonGenerator = null;
+            failedEventsWriter = null;
+            failedEventsJsonGenerator = null;
         }
 
 
@@ -78,6 +81,11 @@ public abstract class AbstractElasticsearchPublisher<T> implements Runnable {
         this.propertyList = generatePropertyList(context, properties);
 
         this.propertySerializer = new PropertySerializer<>();
+
+        if (settings.getSleepTime() / 10 > this.inactiveTimeLimit)
+        {
+            this.inactiveTimeLimit = settings.getSleepTime() * 10L;
+        }
     }
 
     private static ElasticsearchOutputAggregator configureOutputAggregator(Settings settings, ErrorReporter errorReporter, ElasticsearchWriter elasticWriter) {
@@ -127,8 +135,16 @@ public abstract class AbstractElasticsearchPublisher<T> implements Runnable {
                 errorReporter.logWarning("Max events in queue reached - log messages will be lost until the queue is processed");
                 ((LinkedList<T>) events).removeFirst();
             }
+            // in case the working thread has not performed any work for min 15 minutes or else 10x the sleep time if it
+            // is higher than 15 minutes (which it really shouldn't) we assume the worker thread died and try to spawn
+            // a new one
+            if (workingTimestamp.get() < System.currentTimeMillis() - inactiveTimeLimit)
+            {
+                working.set(false);
+            }
             if (!working.get()) {
-                Thread thread = new Thread(this, THREAD_NAME_PREFIX + THREAD_COUNTER.getAndIncrement());
+                workingTimestamp.set(System.currentTimeMillis());
+                Thread thread = new Thread(this, THREAD_NAME_PREFIX + THREAD_COUNTER.incrementAndGet());
                 thread.setDaemon(true);
                 thread.start();
             }
@@ -137,17 +153,28 @@ public abstract class AbstractElasticsearchPublisher<T> implements Runnable {
 
     @Override
     public void run() {
+        int threadId = 0;
         synchronized (lock) {
             if (!working.compareAndSet(false, true)) {
                 return;
             }
+            threadId = THREAD_COUNTER.get();
         }
+        DATE_FORMAT.remove();
         int currentTry = 0;
         int maxRetries = settings.getMaxRetries();
         long lastErrorTime = 0;
         long processStartTime = System.currentTimeMillis();
         while (true) {
             try {
+                // if this threads ID is lower than the most recent one the only explanation is that it was some old
+                // thread that for some unexplainable reason was inactive for a very long time only to suddenly start
+                // working again but it already got replaced by a newly started one, so we can let it rest
+                if (threadId != THREAD_COUNTER.get())
+                {
+                    return;
+                }
+                workingTimestamp.set(processStartTime);
                 Thread.sleep(settings.getWriteSleepTime());
                 List<T> eventsCopy = null;
                 synchronized (lock) {
