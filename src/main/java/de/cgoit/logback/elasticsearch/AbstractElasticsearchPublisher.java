@@ -72,8 +72,8 @@ public abstract class AbstractElasticsearchPublisher<T> implements Runnable {
             this.failedEventsWriter = new FailedEventsWriter(settings.getFailedEventsLoggerName());
             this.failedEventsJsonGenerator = jf.createGenerator(failedEventsWriter);
         } else {
-            failedEventsWriter = null;
-            failedEventsJsonGenerator = null;
+            this.failedEventsWriter = null;
+            this.failedEventsJsonGenerator = null;
         }
 
 
@@ -82,7 +82,7 @@ public abstract class AbstractElasticsearchPublisher<T> implements Runnable {
 
         this.propertySerializer = new PropertySerializer<>();
 
-        if (settings.getSleepTime() / 10 > this.inactiveTimeLimit)
+        if (settings.getSleepTime() * 10 > this.inactiveTimeLimit)
         {
             this.inactiveTimeLimit = settings.getSleepTime() * 10L;
         }
