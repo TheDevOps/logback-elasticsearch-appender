@@ -28,7 +28,7 @@ public class Settings {
     private Authentication authentication;
     private int maxMessageSize = -1;
     private boolean enableContextMap;
-    private int maxEvents = -1;
+    private int maxEvents = 1000000;
 
     public String getIndex() {
         return index;
