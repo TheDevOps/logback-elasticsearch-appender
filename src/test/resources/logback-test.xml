@@ -29,6 +29,9 @@
             <property>
                 <name>stacktrace</name>
                 <value>%ex</value>
+                <ignoredLoggers>
+                    ES_LOGGER
+                </ignoredLoggers>
             </property>
             <property>
                 <name>logger</name>

@@ -18,8 +18,11 @@ public class AppenderIT extends IntegrationTest {
     public void testIndexLogEntry() throws IOException {
         final int count = 10000;
         LOG.info("Insert {} entries to es.", count);
-        for (int i = 0; i < count; i++) {
+        for (int i = 0; i < count / 2; i++) {
             ES_LOG.info("Log some int {} to elasticsearch", i);
+        }
+        for (int i = count / 2; i < count; i++) {
+            ES_LOG.info("Log some int {} to elasticsearch", i, new RuntimeException("This is a runtime exception"));
         }
 
         checkLogEntries(count);

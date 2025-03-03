@@ -52,8 +52,8 @@ public abstract class AbstractElasticsearchPublisher<T> implements Runnable {
 
     public AbstractElasticsearchPublisher(Context context, ErrorReporter errorReporter, Settings settings, ElasticsearchProperties properties, HttpRequestHeaders headers) throws IOException {
         this.errorReporter = errorReporter;
-        this.events = new LinkedList<>();
-        this.lock = new Object();
+        events = new LinkedList<>();
+        lock = new Object();
         this.settings = settings;
 
         if (settings.getUrl() != null) {
@@ -63,28 +63,28 @@ public abstract class AbstractElasticsearchPublisher<T> implements Runnable {
         {
             elasticWriter = null;
         }
-        this.outputAggregator = configureOutputAggregator(settings, errorReporter, elasticWriter);
+        outputAggregator = configureOutputAggregator(settings, errorReporter, elasticWriter);
 
-        this.jf = new JsonFactory();
-        this.jf.setRootValueSeparator(null);
-        this.jsonGenerator = jf.createGenerator(outputAggregator);
+        jf = new JsonFactory();
+        jf.setRootValueSeparator(null);
+        jsonGenerator = jf.createGenerator(outputAggregator);
         if (settings.getFailedEventsLoggerName() != null) {
-            this.failedEventsWriter = new FailedEventsWriter(settings.getFailedEventsLoggerName());
-            this.failedEventsJsonGenerator = jf.createGenerator(failedEventsWriter);
+            failedEventsWriter = new FailedEventsWriter(settings.getFailedEventsLoggerName());
+            failedEventsJsonGenerator = jf.createGenerator(failedEventsWriter);
         } else {
             this.failedEventsWriter = null;
             this.failedEventsJsonGenerator = null;
         }
 
 
-        this.indexPattern = buildPropertyAndEncoder(context, new EsProperty("<index>", settings.getIndex(), false));
-        this.propertyList = generatePropertyList(context, properties);
+        indexPattern = buildPropertyAndEncoder(context, new EsProperty("<index>", settings.getIndex(), false, null));
+        propertyList = generatePropertyList(context, properties);
 
-        this.propertySerializer = new PropertySerializer<>();
+        propertySerializer = new PropertySerializer<>();
 
         if (settings.getSleepTime() * 10 > this.inactiveTimeLimit)
         {
-            this.inactiveTimeLimit = settings.getSleepTime() * 10L;
+            inactiveTimeLimit = settings.getSleepTime() * 10L;
         }
     }
 
@@ -287,6 +287,6 @@ public abstract class AbstractElasticsearchPublisher<T> implements Runnable {
     protected abstract void serializeCommonFields(JsonGenerator gen, T event) throws IOException;
 
     public List<T> getEvents() {
-        return this.events;
+        return events;
     }
 }

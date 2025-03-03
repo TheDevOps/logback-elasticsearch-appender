@@ -1,5 +1,8 @@
 package de.cgoit.logback.elasticsearch.util;
 
+import java.util.List;
+
+import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.Context;
 import ch.qos.logback.core.pattern.PatternLayoutBase;
 import de.cgoit.logback.elasticsearch.config.EsProperty;
@@ -11,16 +14,24 @@ public abstract class AbstractPropertyAndEncoder<T> {
     public AbstractPropertyAndEncoder(EsProperty property, Context context) {
         this.property = property;
 
-        this.layout = getLayout();
-        this.layout.setContext(context);
-        this.layout.setPattern(property.getValue());
-        this.layout.setPostCompileProcessor(null);
-        this.layout.start();
+        layout = getLayout();
+        layout.setContext(context);
+        layout.setPattern(property.getValue());
+        layout.setPostCompileProcessor(null);
+        layout.start();
     }
 
     protected abstract PatternLayoutBase<T> getLayout();
 
     public String encode(T event) {
+        if (event instanceof ILoggingEvent)
+        {
+            ILoggingEvent loggingEvent = (ILoggingEvent) event;
+            if (property.getIgnoredLoggers().contains(loggingEvent.getLoggerName()))
+            {
+                return null;
+            }
+        }
         return layout.doLayout(event);
     }
 
@@ -34,5 +45,9 @@ public abstract class AbstractPropertyAndEncoder<T> {
 
     public EsProperty.Type getType() {
         return property.getType();
+    }
+
+    public List<String> getIngnoredLoggers() {
+        return property.getIgnoredLoggers();
     }
 }

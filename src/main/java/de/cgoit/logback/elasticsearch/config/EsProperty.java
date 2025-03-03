@@ -1,18 +1,26 @@
 package de.cgoit.logback.elasticsearch.config;
 
+import java.util.LinkedList;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 public class EsProperty {
     private String name;
     private String value;
     private boolean allowEmpty;
+    private List<String> ignoredLoggers = new LinkedList<>();
+
     private Type type = Type.STRING;
 
     public EsProperty() {
     }
 
-    public EsProperty(String name, String value, boolean allowEmpty) {
+    public EsProperty(String name, String value, boolean allowEmpty, String ignoredLoggers) {
         this.name = name;
         this.value = value;
         this.allowEmpty = allowEmpty;
+        setIgnoredLoggers(ignoredLoggers);
     }
 
     public String getName() {
@@ -48,6 +56,23 @@ public class EsProperty {
             this.type = Enum.valueOf(Type.class, type.toUpperCase());
         } catch (IllegalArgumentException e) {
             this.type = Type.STRING;
+        }
+    }
+
+    public List<String> getIgnoredLoggers()
+    {
+        return ignoredLoggers;
+    }
+
+    public void setIgnoredLoggers(String ignoredLoggers)
+    {
+        if (ignoredLoggers != null)
+        {
+            this.ignoredLoggers = Stream.of(ignoredLoggers.split(",")).collect(Collectors.toList());
+        }
+        else
+        {
+            this.ignoredLoggers.clear();
         }
     }
 

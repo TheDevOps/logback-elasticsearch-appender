@@ -63,6 +63,7 @@ In your `logback.xml`:
                 <property>
                     <name>stacktrace</name>
                     <value>%ex</value>
+                    <ignoredLoggers>at.logger.Class1,at.logger.Class2</ignoredLoggers>
                 </property>
                 <property>
                     <name>logger</name>
@@ -133,6 +134,7 @@ The fields `@timestamp` and `message` are always sent and can not currently be c
  * `value` (required): Text string to be sent. Internally, the value is populated using a Logback PatternLayout, so all [Conversion Words](http://logback.qos.ch/manual/layouts.html#conversionWord) can be used (in addition to the standard static variable interpolations like `${HOSTNAME}`).
  * `allowEmpty` (optional, default `false`): Normally, if the `value` results in a `null` or empty string, the field will not be sent. If `allowEmpty` is set to `true` then the field will be sent regardless
  * `type` (optional, default `String`): type of the field on the resulting JSON message. Possible values are: `String`, `int`, `float`, `boolean` and `object`. Use `object` if the value is the string representation of a JSON object or array ie. `{"k" : true}`or `[1,2,3,]`.
+ * `ignoredLoggers` (optional, default `String`): An optional comma separated list of loggers for which a stracktrace should be ignored. Useful if some framework logs stacktraces without real value. E.g. `at.logger.Class1,at.logger.Class2,my-custom-logger-name`
 
 Groovy Configuration
 ====================
