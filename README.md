@@ -16,9 +16,9 @@ Include slf4j and logback as usual (depending on this library will *not* automat
 In your `pom.xml` (or equivalent), add:
 
      <dependency>
-        <groupId>de.cgoit</groupId>
+        <groupId>at.porscheinformatik.crossng</groupId>
         <artifactId>logback-elasticsearch-appender</artifactId>
-        <version>1.8</version>
+        <version>1.7.12</version>
      </dependency>
 
 In your `logback.xml`:
@@ -34,9 +34,9 @@ In your `logback.xml`:
             <errorsToStderr>false</errorsToStderr> <!-- optional (default false) -->
             <includeCallerData>false</includeCallerData> <!-- optional (default false) -->
             <logsToStderr>false</logsToStderr> <!-- optional (default false) -->
-            <maxQueueSize>104857600</maxQueueSize> <!-- optional (default 104857600) -->
+            <maxQueueSize>104857600</maxQueueSize> <!-- optional (default 52428800) -->
             <maxRetries>3</maxRetries> <!-- optional (default 3) -->
-            <maxEvents>100</maxEvents><!-- optional (default -1) -->
+            <maxEvents>100</maxEvents><!-- optional (default 1000000) -->
             <readTimeout>30000</readTimeout> <!-- optional (in ms, default 30000) -->
             <sleepTime>250</sleepTime> <!-- optional (in ms, default 250) -->
             <sleepTimeAfterError>15000</sleepTimeAfterError> <!-- optional (in ms, default 15000) -->
@@ -47,28 +47,28 @@ In your `logback.xml`:
             <authentication class="BasicAuthentication" /> <!-- optional -->
             <enableContextMap>false</enableContextMap><!-- optional (default false) -->
             <properties>
-                <property>
+                <esProperty>
                     <name>host</name>
                     <value>${HOSTNAME}</value>
                     <allowEmpty>false</allowEmpty>
-                </property>
-                <property>
+                </esProperty>
+                <esProperty>
                     <name>severity</name>
                     <value>%level</value>
-                </property>
-                <property>
+                </esProperty>
+                <esProperty>
                     <name>thread</name>
                     <value>%thread</value>
-                </property>
-                <property>
+                </esProperty>
+                <esProperty>
                     <name>stacktrace</name>
                     <value>%ex</value>
-                    <ignoredLoggers>at.logger.Class1,at.logger.Class2</ignoredLoggers>
-                </property>
-                <property>
+                    <ignoredLoggers>at.logger.Class1,at.logger.Class2,my-custom-logger-name</ignoredLoggers>
+                </esProperty>
+                <esProperty>
                     <name>logger</name>
                     <value>%logger</value>
-                </property>
+                </esProperty>
             </properties>
             <headers>
                 <header>
@@ -86,7 +86,7 @@ In your `logback.xml`:
         <logger name="es-error-logger" level="INFO" additivity="false">
             <appender-ref ref="FILELOGGER" />
         </logger>
-        
+
         <logger name="es-failed-events" level="INFO" additivity="false">
             <appender-ref ref="FILELOGGER" />
         </logger>
@@ -116,8 +116,8 @@ Configuration Reference
  * `includeCallerData` (optional, default false): If set to `true`, save the caller data (identical to the [AsyncAppender's includeCallerData](http://logback.qos.ch/manual/appenders.html#asyncIncludeCallerData))
  * `errorsToStderr` (optional, default false): If set to `true`, any errors in communicating with Elasticsearch will also be dumped to stderr (normally they are only reported to the internal Logback Status system, in order to prevent a feedback loop)
  * `logsToStderr` (optional, default false): If set to `true`, dump the raw Elasticsearch messages to stderr
- * `maxQueueSize` (optional, default 104,857,600 = 200MB): Maximum size (in characters) of the send buffer. After this point, *logs will be dropped*. This should only happen if Elasticsearch is down, but this is a self-protection mechanism to ensure that the logging system doesn't cause the main process to run out of memory. Note that this maximum is approximate; once the maximum is hit, no new logs will be accepted until it shrinks, but any logs already accepted to be processed will still be added to the buffer
- * `maxEvents` (optional, default -1 i.e. not limited): Maximum amount of logging events to be stored for later sending.
+ * `maxQueueSize` (optional, default 52,428,800 = 50MB): Maximum size (in characters) of the send buffer. After this point, *logs will be dropped*. This should only happen if Elasticsearch is down, but this is a self-protection mechanism to ensure that the logging system doesn't cause the main process to run out of memory. Note that this maximum is approximate; once the maximum is hit, no new logs will be accepted until it shrinks, but any logs already accepted to be processed will still be added to the buffer
+ * `maxEvents` (optional, default 1000000) Maximum amount of logging events to be stored for later sending, set -1 to have unlimited but note that during issues this means you could completely fill the heap with events
  * `loggerName` (optional): If set, raw ES-formatted log data will be sent to this logger
  * `errorLoggerName` (optional): If set, any internal errors or problems will be logged to this logger
  * `failedEventsLoggerName` (optional): If set, any failed event will be logged to this logger
@@ -128,13 +128,13 @@ Configuration Reference
  * `authentication` (optional): Add the ability to send authentication headers (see below)
  * `enableContextMap` (optional): If the latest parameter in logger call is of type java.util.Map then all content of it will be traversed and written with prefix `context.*`. For event-specific custom fields.
 
-The fields `@timestamp` and `message` are always sent and can not currently be configured. Additional fields can be sent by adding `<property>` elements to the `<properties>` set.
+The fields `@timestamp` and `message` are always sent and can not currently be configured. Additional fields can be sent by adding `<esProperty>` elements to the `<properties>` set.
 
  * `name` (required): Key to be used in the log event
  * `value` (required): Text string to be sent. Internally, the value is populated using a Logback PatternLayout, so all [Conversion Words](http://logback.qos.ch/manual/layouts.html#conversionWord) can be used (in addition to the standard static variable interpolations like `${HOSTNAME}`).
  * `allowEmpty` (optional, default `false`): Normally, if the `value` results in a `null` or empty string, the field will not be sent. If `allowEmpty` is set to `true` then the field will be sent regardless
  * `type` (optional, default `String`): type of the field on the resulting JSON message. Possible values are: `String`, `int`, `float`, `boolean` and `object`. Use `object` if the value is the string representation of a JSON object or array ie. `{"k" : true}`or `[1,2,3,]`.
- * `ignoredLoggers` (optional, default `String`): An optional comma separated list of loggers for which a stracktrace should be ignored. Useful if some framework logs stacktraces without real value. E.g. `at.logger.Class1,at.logger.Class2,my-custom-logger-name`
+ * `ignoredLoggers` (optional, default `<empty>`): An optional comma separated list of loggers for which a field should be ignored even if it exists in the event. Useful if some framework logs stacktraces without real value and they are not needed in elastic. E.g. `at.logger.Class1,at.logger.Class2,my-custom-logger-name`
 
 Groovy Configuration
 ====================
@@ -164,11 +164,11 @@ If you configure logback using `logback.groovy`, this can be configured as follo
         headers = configHeaders
     
         def props = new ElasticsearchProperties()
-        props.addProperty(new Property('host', "${hostname}", false))
-        props.addProperty(new Property('severity', '%level', false))
-        props.addProperty(new Property('thread', '%thread', false))
-        props.addProperty(new Property('stacktrace', '%ex', true))
-        props.addProperty(new Property('logger', '%logger', false))
+        props.addProperty(new EsProperty('host', "${hostname}", false))
+        props.addProperty(new EsProperty('severity', '%level', false))
+        props.addProperty(new EsProperty('thread', '%thread', false))
+        props.addProperty(new EsProperty('stacktrace', '%ex', true, 'at.logger.Class1,at.logger.Class2,my-custom-logger-name'))
+        props.addProperty(new EsProperty('logger', '%logger', false))
         elasticsearchProperties = props
       }
 

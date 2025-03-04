@@ -16,6 +16,10 @@ public class EsProperty {
     public EsProperty() {
     }
 
+    public EsProperty(String name, String value, boolean allowEmpty) {
+        this(name, value, allowEmpty, null);
+    }
+
     public EsProperty(String name, String value, boolean allowEmpty, String ignoredLoggers) {
         this.name = name;
         this.value = value;
