@@ -11,6 +11,8 @@ This software is dual-licensed under the EPL 1.0 and LGPL 2.1, which is identica
 
 Usage
 =====
+Requires: Java 17+ and tested + compiled against logback 1.5.x and logback-access-common 2.0.x
+
 Include slf4j and logback as usual (depending on this library will *not* automatically pull them in).
 
 In your `pom.xml` (or equivalent), add:
@@ -18,7 +20,7 @@ In your `pom.xml` (or equivalent), add:
      <dependency>
         <groupId>at.porscheinformatik.crossng</groupId>
         <artifactId>logback-elasticsearch-appender</artifactId>
-        <version>1.7.12</version>
+        <version>1.8.1</version>
      </dependency>
 
 In your `logback.xml`:
