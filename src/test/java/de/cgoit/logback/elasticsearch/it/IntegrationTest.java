@@ -31,7 +31,7 @@ public abstract class IntegrationTest
     protected static final String ELASTICSEARCH_LOGGER_NAME = "ES_LOGGER";
     protected static final String ELASTICSEARCH_RAW_LOGGER_NAME = "ES_RAW_LOGGER";
     private static final Logger LOG = LoggerFactory.getLogger(IntegrationTest.class);
-    private static final int WAIT_FOR_DOCUMENTS_MAX_RETRIES = 10;
+    private static final int WAIT_FOR_DOCUMENTS_MAX_RETRIES = 15;
     private static final int WAIT_FOR_DOCUMENTS_SLEEP_INTERVAL = 2000;
     private static final String ELASTICSEARCH_APPENDER_NAME = "ES_APPENDER";
     private static final String ELASTICSEARCH_RAW_APPENDER_NAME = "ES_RAW_APPENDER";
@@ -105,14 +105,15 @@ public abstract class IntegrationTest
         LOG.info("Check if we have {} documents in Elasticsearch. Max retries: {}", desiredCount,
             WAIT_FOR_DOCUMENTS_MAX_RETRIES);
         int retries = WAIT_FOR_DOCUMENTS_MAX_RETRIES;
-        HitsMetadata<?> hits = searchAll();
-        while (hits.total().value() != desiredCount && retries-- > 0)
+        long hitcount = 0;
+        while (hitcount != desiredCount && retries-- > 0)
         {
             try
             {
-                LOG.debug("Found {} documents. Desired count is {}. Retry...", hits.total().value(), desiredCount);
+                LOG.debug("Found {} documents. Desired count is {}. Retry...", hitcount, desiredCount);
                 Thread.sleep(WAIT_FOR_DOCUMENTS_SLEEP_INTERVAL);
-                hits = searchAll();
+                HitsMetadata<?> hits = searchAll();
+                hitcount = hits.total().value();
             }
             catch (InterruptedException | ElasticsearchException ex)
             {
@@ -120,7 +121,7 @@ public abstract class IntegrationTest
             }
         }
 
-        LOG.debug("Found {} documents. Desired count is {}.", hits.total().value(), desiredCount);
-        assertEquals(String.format("Document count should be %s", desiredCount), desiredCount, hits.total().value());
+        LOG.debug("Found {} documents. Desired count is {}.", hitcount, desiredCount);
+        assertEquals(String.format("Document count should be %s", desiredCount), desiredCount, hitcount);
     }
 }
