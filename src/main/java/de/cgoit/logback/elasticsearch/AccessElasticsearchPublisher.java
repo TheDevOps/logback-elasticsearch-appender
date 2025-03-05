@@ -1,6 +1,6 @@
 package de.cgoit.logback.elasticsearch;
 
-import ch.qos.logback.access.spi.IAccessEvent;
+import ch.qos.logback.access.common.spi.IAccessEvent;
 import ch.qos.logback.core.Context;
 import com.fasterxml.jackson.core.JsonGenerator;
 import de.cgoit.logback.elasticsearch.config.ElasticsearchProperties;

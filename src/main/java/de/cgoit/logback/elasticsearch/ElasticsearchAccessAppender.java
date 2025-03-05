@@ -1,9 +1,10 @@
 package de.cgoit.logback.elasticsearch;
 
-import ch.qos.logback.access.spi.IAccessEvent;
 import de.cgoit.logback.elasticsearch.config.Settings;
 
 import java.io.IOException;
+
+import ch.qos.logback.access.common.spi.IAccessEvent;
 
 public class ElasticsearchAccessAppender extends AbstractElasticsearchAppender<IAccessEvent> {
 
@@ -20,6 +21,7 @@ public class ElasticsearchAccessAppender extends AbstractElasticsearchAppender<I
         publishEvent(eventObject);
     }
 
+    @Override
     protected AccessElasticsearchPublisher buildElasticsearchPublisher() throws IOException {
         return new AccessElasticsearchPublisher(getContext(), errorReporter, settings, elasticsearchProperties, headers);
     }
