@@ -31,6 +31,7 @@ public class Response {
     }
 
     public List<Map<String, Object>> getItems() {
+        @SuppressWarnings("unchecked")
         List<Map<String, Object>> items = (List<Map<String, Object>>) response.get(ITEMS);
         if (items != null) {
             return items;
@@ -51,6 +52,7 @@ public class Response {
             Map<String, Object> item = items.get(i);
             if (item != null)
             {
+                @SuppressWarnings("unchecked")
                 Map<String, Object> entry = (Map<String, Object>) item.get(CREATE);
                 if (entry != null && (int) entry.get(STATUS) != HttpStatus.SC_CREATED) {
                     result.put(i, entry);

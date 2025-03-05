@@ -1,54 +1,59 @@
 package de.cgoit.logback.elasticsearch.it;
 
-import de.cgoit.logback.elasticsearch.ElasticsearchAppender;
+import static org.junit.Assert.assertEquals;
+
+import java.io.IOException;
+import java.net.MalformedURLException;
+
 import org.apache.http.HttpHost;
-import org.elasticsearch.ElasticsearchStatusException;
-import org.elasticsearch.action.search.SearchRequest;
-import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.action.search.SearchType;
-import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestClient;
-import org.elasticsearch.client.RestHighLevelClient;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.index.reindex.BulkByScrollResponse;
-import org.elasticsearch.index.reindex.DeleteByQueryRequest;
-import org.elasticsearch.search.SearchHits;
-import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.junit.After;
 import org.junit.Before;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.elasticsearch.ElasticsearchContainer;
+import org.testcontainers.utility.DockerImageName;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch._types.ElasticsearchException;
+import co.elastic.clients.elasticsearch._types.query_dsl.QueryBuilders;
+import co.elastic.clients.elasticsearch.core.DeleteByQueryRequest;
+import co.elastic.clients.elasticsearch.core.SearchRequest;
+import co.elastic.clients.elasticsearch.core.SearchResponse;
+import co.elastic.clients.elasticsearch.core.search.HitsMetadata;
+import co.elastic.clients.json.jackson.JacksonJsonpMapper;
+import co.elastic.clients.transport.rest_client.RestClientTransport;
+import de.cgoit.logback.elasticsearch.ElasticsearchAppender;
 
-import static org.junit.Assert.assertEquals;
-
-public abstract class IntegrationTest {
+public abstract class IntegrationTest
+{
 
     protected static final String ELASTICSEARCH_LOGGER_NAME = "ES_LOGGER";
     protected static final String ELASTICSEARCH_RAW_LOGGER_NAME = "ES_RAW_LOGGER";
     private static final Logger LOG = LoggerFactory.getLogger(IntegrationTest.class);
-    private static final String INDEX = "log_entries";
     private static final int WAIT_FOR_DOCUMENTS_MAX_RETRIES = 10;
     private static final int WAIT_FOR_DOCUMENTS_SLEEP_INTERVAL = 2000;
     private static final String ELASTICSEARCH_APPENDER_NAME = "ES_APPENDER";
     private static final String ELASTICSEARCH_RAW_APPENDER_NAME = "ES_RAW_APPENDER";
 
-    protected static RestHighLevelClient client;
+    protected static ElasticsearchClient client;
     protected static ElasticsearchContainer container;
 
-    protected static void deleteAll() throws IOException {
-        DeleteByQueryRequest request = new DeleteByQueryRequest("_all");
-        request.setQuery(QueryBuilders.matchAllQuery());
-        BulkByScrollResponse response = client.deleteByQuery(request, RequestOptions.DEFAULT);
-        long deleted = response.getDeleted();
-        LOG.info("Deleted {} documents from elasticsearch.", deleted);
+    protected static void deleteAll() throws IOException
+    {
+        DeleteByQueryRequest request = new DeleteByQueryRequest.Builder()
+            .index("_all")
+            .query(QueryBuilders.matchAll().build()._toQuery())
+            .build();
+        client.deleteByQuery(request);
+        LOG.info("Deleted all documents from Elasticsearch.");
     }
 
-    private static void configureElasticSearchAppender(String loggerName, String appenderName) throws MalformedURLException {
-        ch.qos.logback.classic.Logger logbackLogger = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(loggerName);
+    private static void configureElasticSearchAppender(String loggerName, String appenderName)
+        throws MalformedURLException
+    {
+        ch.qos.logback.classic.Logger logbackLogger =
+            (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(loggerName);
         ElasticsearchAppender appender = (ElasticsearchAppender) logbackLogger.getAppender(appenderName);
 
         String containerUrl = HttpHost.create(container.getHttpHostAddress()).toURI() + "/_bulk";
@@ -57,15 +62,22 @@ public abstract class IntegrationTest {
     }
 
     @Before
-    public void setupElasticSearchContainer() throws IOException {
-        // Create the elasticsearch container.
-        IntegrationTest.container = new ElasticsearchContainer("docker.elastic.co/elasticsearch/elasticsearch-oss:7.9.1");
+    public void setupElasticSearchContainer() throws IOException
+    {
+        // Create the Elasticsearch container.
+        DockerImageName elasticImage = DockerImageName
+            .parse("docker.porscheinformatik.com/docker-proxy-elastic/elasticsearch/elasticsearch:7.17.28")
+            .asCompatibleSubstituteFor("docker.elastic.co/elasticsearch/elasticsearch");
+        IntegrationTest.container = new ElasticsearchContainer(elasticImage);
 
         // Start the container. This step might take some time...
         container.start();
 
-        // Do whatever you want with the rest client ...
-        IntegrationTest.client = new RestHighLevelClient(RestClient.builder(HttpHost.create(container.getHttpHostAddress())));
+        // Create the Elasticsearch client.
+        RestClient restClient = RestClient.builder(HttpHost.create(container.getHttpHostAddress())).build();
+        RestClientTransport transport = new RestClientTransport(restClient, new JacksonJsonpMapper());
+        IntegrationTest.client = new ElasticsearchClient(transport);
+
         configureElasticSearchAppender(ELASTICSEARCH_LOGGER_NAME, ELASTICSEARCH_APPENDER_NAME);
         configureElasticSearchAppender(ELASTICSEARCH_RAW_LOGGER_NAME, ELASTICSEARCH_RAW_APPENDER_NAME);
 
@@ -73,33 +85,42 @@ public abstract class IntegrationTest {
     }
 
     @After
-    public void tearDownElasticSearchContainer() {
+    public void tearDownElasticSearchContainer()
+    {
         // Stop the container.
         IntegrationTest.container.stop();
     }
 
-    protected SearchHits searchAll() throws IOException {
-        SearchRequest request = new SearchRequest();
-        request.searchType(SearchType.DEFAULT).source(SearchSourceBuilder.searchSource().query(QueryBuilders.matchAllQuery()));
-        SearchResponse response = client.search(request, RequestOptions.DEFAULT);
-        return response.getHits();
+    protected HitsMetadata<?> searchAll() throws IOException
+    {
+        SearchRequest request = new SearchRequest.Builder()
+            .query(QueryBuilders.matchAll().build()._toQuery())
+            .build();
+        SearchResponse<?> response = client.search(request, Object.class);
+        return response.hits();
     }
 
-    protected void checkLogEntries(long desiredCount) throws IOException {
-        LOG.info("Check if we have {} documents in Elasticsearch. Max retries: {}", desiredCount, WAIT_FOR_DOCUMENTS_MAX_RETRIES);
+    protected void checkLogEntries(long desiredCount) throws IOException
+    {
+        LOG.info("Check if we have {} documents in Elasticsearch. Max retries: {}", desiredCount,
+            WAIT_FOR_DOCUMENTS_MAX_RETRIES);
         int retries = WAIT_FOR_DOCUMENTS_MAX_RETRIES;
-        SearchHits hits = searchAll();
-        while (hits.getTotalHits().value != desiredCount && retries-- > 0) {
-            try {
-                LOG.debug("Found {} documents. Desired count is {}. Retry...", hits.getTotalHits().value, desiredCount);
+        HitsMetadata<?> hits = searchAll();
+        while (hits.total().value() != desiredCount && retries-- > 0)
+        {
+            try
+            {
+                LOG.debug("Found {} documents. Desired count is {}. Retry...", hits.total().value(), desiredCount);
                 Thread.sleep(WAIT_FOR_DOCUMENTS_SLEEP_INTERVAL);
                 hits = searchAll();
-            } catch (InterruptedException | ElasticsearchStatusException ex) {
+            }
+            catch (InterruptedException | ElasticsearchException ex)
+            {
                 // just retrying
             }
         }
 
-        LOG.debug("Found {} documents. Desired count is {}.", hits.getTotalHits().value, desiredCount);
-        assertEquals(String.format("Document count should be %s", desiredCount), desiredCount, hits.getTotalHits().value);
+        LOG.debug("Found {} documents. Desired count is {}.", hits.total().value(), desiredCount);
+        assertEquals(String.format("Document count should be %s", desiredCount), desiredCount, hits.total().value());
     }
 }

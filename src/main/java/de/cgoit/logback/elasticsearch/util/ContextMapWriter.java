@@ -6,12 +6,12 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
 
 public class ContextMapWriter {
 
+    @SuppressWarnings("unchecked")
     static void traverseObject(Map<String, Object> accumulator, String context, Object object) {
         if (object == null) {
             return;
@@ -19,7 +19,7 @@ public class ContextMapWriter {
         if (object instanceof Map) {
             traverseMap(accumulator, context, (Map<Object, Object>) object);
         } else if (object instanceof Collection) {
-            traverseCollection(accumulator, context, (Collection) object);
+            traverseCollection(accumulator, context, (Collection<Object>) object);
         } else if (object instanceof Number) {
             accumulator.put(context, object);
         } else {
@@ -28,10 +28,9 @@ public class ContextMapWriter {
     }
 
     static void traverseCollection(Map<String, Object> accumulator, String context, Collection<Object> object) {
-        Iterator<Object> iterator = object.iterator();
         int i = 0;
-        while (iterator.hasNext()) {
-            Object v = iterator.next();
+        for (Object v : object)
+        {
             traverseObject(accumulator, context + "." + i, v);
             i++;
         }
@@ -44,6 +43,7 @@ public class ContextMapWriter {
         return accumulator;
     }
 
+    @SuppressWarnings("unchecked")
     public void writeContextMap(JsonGenerator gen, ILoggingEvent event) throws IOException {
         Object[] arguments = event.getArgumentArray();
         if (arguments == null || arguments.length == 0) {
