@@ -15,7 +15,6 @@ import org.testcontainers.elasticsearch.ElasticsearchContainer;
 import org.testcontainers.utility.DockerImageName;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
-import co.elastic.clients.elasticsearch._types.ElasticsearchException;
 import co.elastic.clients.elasticsearch._types.query_dsl.QueryBuilders;
 import co.elastic.clients.elasticsearch.core.DeleteByQueryRequest;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
@@ -115,7 +114,7 @@ public abstract class IntegrationTest
                 HitsMetadata<?> hits = searchAll();
                 hitcount = hits.total().value();
             }
-            catch (InterruptedException | ElasticsearchException ex)
+            catch (Exception ex)
             {
                 // just retrying
             }
