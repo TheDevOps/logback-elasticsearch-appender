@@ -98,12 +98,12 @@
       <dependency>
         <groupId>org.elasticsearch.client</groupId>
         <artifactId>elasticsearch-rest-client</artifactId>
-        <version>7.17.28</version>
+        <version>8.17.2</version>
       </dependency>
       <dependency>
         <groupId>co.elastic.clients</groupId>
         <artifactId>elasticsearch-java</artifactId>
-        <version>7.17.28</version>
+        <version>8.17.2</version>
       </dependency>
       <dependency>
         <groupId>org.jacoco</groupId>

@@ -30,7 +30,7 @@ public abstract class IntegrationTest
     protected static final String ELASTICSEARCH_LOGGER_NAME = "ES_LOGGER";
     protected static final String ELASTICSEARCH_RAW_LOGGER_NAME = "ES_RAW_LOGGER";
     private static final Logger LOG = LoggerFactory.getLogger(IntegrationTest.class);
-    private static final int WAIT_FOR_DOCUMENTS_MAX_RETRIES = 15;
+    private static final int WAIT_FOR_DOCUMENTS_MAX_RETRIES = 20;
     private static final int WAIT_FOR_DOCUMENTS_SLEEP_INTERVAL = 2000;
     private static final String ELASTICSEARCH_APPENDER_NAME = "ES_APPENDER";
     private static final String ELASTICSEARCH_RAW_APPENDER_NAME = "ES_RAW_APPENDER";
@@ -65,10 +65,14 @@ public abstract class IntegrationTest
     {
         // Create the Elasticsearch container.
         DockerImageName elasticImage = DockerImageName
-            .parse("docker.porscheinformatik.com/docker-proxy-elastic/elasticsearch/elasticsearch:7.17.28")
+            .parse("docker.porscheinformatik.com/docker-proxy-elastic/elasticsearch/elasticsearch:8.17.2")
             .asCompatibleSubstituteFor("docker.elastic.co/elasticsearch/elasticsearch");
         IntegrationTest.container = new ElasticsearchContainer(elasticImage);
-
+        // disable ssl, for our test this is more than enough
+        container.getEnvMap().put("xpack.security.enabled", "false");
+        container.getEnvMap().put("xpack.security.enrollment.enabled", "false");
+        container.getEnvMap().put("ES_JAVA_OPTS", "-Xms512M -Xmx512M");
+        container.getEnvMap().put("bootstrap.memory_lock", "true");
         // Start the container. This step might take some time...
         container.start();
 
@@ -117,6 +121,7 @@ public abstract class IntegrationTest
             catch (Exception ex)
             {
                 // just retrying
+                LOG.info("Failed checking for documents: {}. Retry...", ex.getMessage());
             }
         }
 
