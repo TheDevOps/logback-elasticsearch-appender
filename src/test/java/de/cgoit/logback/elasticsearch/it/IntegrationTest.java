@@ -64,15 +64,19 @@ public abstract class IntegrationTest
     public void setupElasticSearchContainer() throws IOException
     {
         // Create the Elasticsearch container.
+        String elasticImageName =
+            System.getenv().getOrDefault("ELASTICSEARCH_IMAGE_BASE", "docker.elastic.co/elasticsearch/elasticsearch");
+        LOG.info("Using elasticsearch image: {}", elasticImageName);
         DockerImageName elasticImage = DockerImageName
-            .parse("docker.porscheinformatik.com/docker-proxy-elastic/elasticsearch/elasticsearch:8.17.2")
+            .parse(elasticImageName)
+            .withTag("8.17.3")
             .asCompatibleSubstituteFor("docker.elastic.co/elasticsearch/elasticsearch");
-        IntegrationTest.container = new ElasticsearchContainer(elasticImage);
+        container = new ElasticsearchContainer(elasticImage);
         // disable ssl, for our test this is more than enough
-        container.getEnvMap().put("xpack.security.enabled", "false");
-        container.getEnvMap().put("xpack.security.enrollment.enabled", "false");
-        container.getEnvMap().put("ES_JAVA_OPTS", "-Xms512M -Xmx512M");
-        container.getEnvMap().put("bootstrap.memory_lock", "true");
+        container.withEnv("xpack.security.enabled", "false");
+        container.withEnv("xpack.security.enrollment.enabled", "false");
+        container.withEnv("ES_JAVA_OPTS", "-Xms512M -Xmx512M");
+        container.withEnv("bootstrap.memory_lock", "true");
         // Start the container. This step might take some time...
         container.start();
 

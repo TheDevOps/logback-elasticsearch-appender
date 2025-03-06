@@ -1,5 +1,6 @@
 Logback Elasticsearch Appender
 ===============================
+![Last Build Status](https://github.com/TheDevOps/logback-elasticsearch-appender/actions/workflows/maven.yml/badge.svg?branch=master)
 
 This project is a fork of https://github.com/internetitem/logback-elasticsearch-appender with several commits taken from not yet merged PRs, other forks and more.
 
