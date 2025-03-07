@@ -13,30 +13,30 @@
         <errorLoggerName>es-error-logger</errorLoggerName> <!-- optional -->
         <includeMdc>true</includeMdc> <!-- optional (default false) -->
         <properties>
-            <property>
+            <esProperty>
                 <name>host</name>
                 <value>${HOSTNAME}</value>
                 <allowEmpty>false</allowEmpty>
-            </property>
-            <property>
+            </esProperty>
+            <esProperty>
                 <name>severity</name>
                 <value>%level</value>
-            </property>
-            <property>
+            </esProperty>
+            <esProperty>
                 <name>thread</name>
                 <value>%thread</value>
-            </property>
-            <property>
+            </esProperty>
+            <esProperty>
                 <name>stacktrace</name>
                 <value>%ex</value>
                 <ignoredLoggers>
                     ES_LOGGER
                 </ignoredLoggers>
-            </property>
-            <property>
+            </esProperty>
+            <esProperty>
                 <name>logger</name>
                 <value>%logger</value>
-            </property>
+            </esProperty>
         </properties>
         <headers>
             <header>
@@ -56,27 +56,30 @@
         <includeMdc>true</includeMdc> <!-- optional (default false) -->
         <rawJsonMessage>true</rawJsonMessage>
         <properties>
-            <property>
+            <esProperty>
                 <name>host</name>
                 <value>${HOSTNAME}</value>
                 <allowEmpty>false</allowEmpty>
-            </property>
-            <property>
+            </esProperty>
+            <esProperty>
                 <name>severity</name>
                 <value>%level</value>
-            </property>
-            <property>
+            </esProperty>
+            <esProperty>
                 <name>thread</name>
                 <value>%thread</value>
-            </property>
-            <property>
+            </esProperty>
+            <esProperty>
                 <name>stacktrace</name>
                 <value>%ex</value>
-            </property>
-            <property>
+                <ignoredLoggers>
+                    ES_LOGGER
+                </ignoredLoggers>
+            </esProperty>
+            <esProperty>
                 <name>logger</name>
                 <value>%logger</value>
-            </property>
+            </esProperty>
         </properties>
         <headers>
             <header>
