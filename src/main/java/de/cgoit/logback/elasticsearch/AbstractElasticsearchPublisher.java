@@ -29,7 +29,6 @@ import java.util.concurrent.atomic.AtomicLong;
 public abstract class AbstractElasticsearchPublisher<T> implements Runnable {
 
     public static final String THREAD_NAME_PREFIX = "es-writer-";
-    private static final AtomicInteger THREAD_COUNTER = new AtomicInteger(0);
     private static final ThreadLocal<DateFormat> DATE_FORMAT = ThreadLocal.withInitial(() ->
             new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ")
     );
@@ -46,8 +45,9 @@ public abstract class AbstractElasticsearchPublisher<T> implements Runnable {
     private final ErrorReporter errorReporter;
     protected Settings settings;
     private volatile List<T> events;
-    private AtomicBoolean working = new AtomicBoolean(false);
-    private AtomicLong workingTimestamp = new AtomicLong(0);
+    private final AtomicInteger threadCounter = new AtomicInteger(0);
+    private final AtomicBoolean working = new AtomicBoolean(false);
+    private final AtomicLong workingTimestamp = new AtomicLong(0);
     private Long inactiveTimeLimit = 15 * 60 * 1000L;
 
     public AbstractElasticsearchPublisher(Context context, ErrorReporter errorReporter, Settings settings, ElasticsearchProperties properties, HttpRequestHeaders headers) throws IOException {
@@ -72,8 +72,8 @@ public abstract class AbstractElasticsearchPublisher<T> implements Runnable {
             failedEventsWriter = new FailedEventsWriter(settings.getFailedEventsLoggerName());
             failedEventsJsonGenerator = jf.createGenerator(failedEventsWriter);
         } else {
-            this.failedEventsWriter = null;
-            this.failedEventsJsonGenerator = null;
+            failedEventsWriter = null;
+            failedEventsJsonGenerator = null;
         }
 
 
@@ -82,7 +82,7 @@ public abstract class AbstractElasticsearchPublisher<T> implements Runnable {
 
         propertySerializer = new PropertySerializer<>();
 
-        if (settings.getSleepTime() * 10 > this.inactiveTimeLimit)
+        if (settings.getSleepTime() * 10 > inactiveTimeLimit)
         {
             inactiveTimeLimit = settings.getSleepTime() * 10L;
         }
@@ -144,7 +144,7 @@ public abstract class AbstractElasticsearchPublisher<T> implements Runnable {
             }
             if (!working.get()) {
                 workingTimestamp.set(System.currentTimeMillis());
-                Thread thread = new Thread(this, THREAD_NAME_PREFIX + THREAD_COUNTER.incrementAndGet());
+                Thread thread = new Thread(this, THREAD_NAME_PREFIX + settings.getIndex() + "-" + threadCounter.incrementAndGet());
                 thread.setDaemon(true);
                 thread.start();
             }
@@ -158,7 +158,7 @@ public abstract class AbstractElasticsearchPublisher<T> implements Runnable {
             if (!working.compareAndSet(false, true)) {
                 return;
             }
-            threadId = THREAD_COUNTER.get();
+            threadId = threadCounter.get();
         }
         DATE_FORMAT.remove();
         int currentTry = 0;
@@ -170,8 +170,9 @@ public abstract class AbstractElasticsearchPublisher<T> implements Runnable {
                 // if this threads ID is lower than the most recent one the only explanation is that it was some old
                 // thread that for some unexplainable reason was inactive for a very long time only to suddenly start
                 // working again but it already got replaced by a newly started one, so we can let it rest
-                if (threadId != THREAD_COUNTER.get())
+                if (threadId != threadCounter.get())
                 {
+                    System.out.println("Exiting thread: " + Thread.currentThread().getName());
                     return;
                 }
                 workingTimestamp.set(processStartTime);
