@@ -26,6 +26,7 @@ public abstract class AbstractElasticsearchAppender<T> extends UnsynchronizedApp
 
     public AbstractElasticsearchAppender(Settings settings) {
         this.settings = settings;
+        this.headers = new HttpRequestHeaders();
     }
 
     @Override
@@ -64,6 +65,10 @@ public abstract class AbstractElasticsearchAppender<T> extends UnsynchronizedApp
 
     public void setElasticsearchProperties(ElasticsearchProperties elasticsearchProperties) {
         this.elasticsearchProperties = elasticsearchProperties;
+    }
+
+    public ElasticsearchProperties getElasticsearchProperties() {
+        return elasticsearchProperties;
     }
 
     public void setSleepTime(int sleepTime) {
@@ -160,5 +165,14 @@ public abstract class AbstractElasticsearchAppender<T> extends UnsynchronizedApp
 
     public void setMaxEvents(int maxEvents) {
         settings.setMaxEvents(maxEvents);
+    }
+
+    public Settings getSettings() {
+        return settings;
+    }
+
+    public HttpRequestHeaders getHeaders()
+    {
+        return headers;
     }
 }

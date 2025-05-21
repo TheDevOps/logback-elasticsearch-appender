@@ -30,6 +30,46 @@ public class Settings {
     private boolean enableContextMap;
     private int maxEvents = 1000000;
 
+    /**
+     * Default constructor
+     */
+    public Settings() {
+        // Default constructor
+    }
+
+    /**
+     * Copy constructor
+     *
+     * @param original the original settings to copy from
+     */
+    public Settings(Settings original) {
+        setIndex(original.index);
+        setType(original.type);
+        setUrl(original.url);
+
+        setLoggerName(original.loggerName);
+        setErrorLoggerName(original.errorLoggerName);
+        setFailedEventsLoggerName(original.failedEventsLoggerName);
+
+        setSleepTime(original.sleepTime);
+        setSleepTimeAfterError(original.sleepTimeAfterError);
+        setWriteSleepTime(original.writeSleepTime);
+        setMaxRetries(original.maxRetries);
+        setConnectTimeout(original.connectTimeout);
+        setReadTimeout(original.readTimeout);
+        setLogsToStderr(original.logsToStderr);
+        setErrorsToStderr(original.errorsToStderr);
+        setIncludeCallerData(original.includeCallerData);
+        setIncludeMdc(original.includeMdc);
+        setExcludedMdcKeys(original.excludedMdcKeys);
+        setRawJsonMessage(original.rawJsonMessage);
+        setMaxQueueSize(original.maxQueueSize);
+        setAuthentication(original.authentication);
+        setMaxMessageSize(original.maxMessageSize);
+        setEnableContextMap(original.enableContextMap);
+        setMaxEvents(original.maxEvents);
+    }
+
     public String getIndex() {
         return index;
     }
