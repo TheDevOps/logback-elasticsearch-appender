@@ -36,7 +36,24 @@ public abstract class AbstractElasticsearchAppender<T> extends UnsynchronizedApp
         try {
             this.publisher = buildElasticsearchPublisher();
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new IllegalStateException(e);
+        }
+    }
+
+    @Override
+    public void stop()
+    {
+        super.stop();
+        try
+        {
+            // Sleep for 2 times the configured sleep time to allow the publisher thread to finish processing events
+            // before the appender is fully stopped
+            Thread.sleep(2L * settings.getSleepTime());
+        }
+        catch (InterruptedException e)
+        {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException("Thread was interrupted while waiting for publisher to finish", e);
         }
     }
 
