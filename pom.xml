@@ -32,7 +32,7 @@
     <url>https://github.com/cgoIT/logback-elasticsearch-appender</url>
   </scm>
   <properties>
-    <jackson.version>2.18.4</jackson.version>
+    <jackson.version>2.18.6</jackson.version>
     <jacoco.version>0.8.13</jacoco.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
