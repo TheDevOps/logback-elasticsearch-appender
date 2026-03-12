@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>at.porscheinformatik.crossng</groupId>
   <artifactId>logback-elasticsearch-appender</artifactId>
-  <version>1.8-SNAPSHOT</version>
+  <version>1.9-SNAPSHOT</version>
   <packaging>jar</packaging>
   <name>Logback Elasticsearch Appender</name>
   <description>Send log events directly from Logback to Elasticsearch</description>
@@ -32,8 +32,8 @@
     <url>https://github.com/cgoIT/logback-elasticsearch-appender</url>
   </scm>
   <properties>
-    <jackson.version>2.18.3</jackson.version>
-    <jacoco.version>0.8.12</jacoco.version>
+    <jackson.version>2.18.4</jackson.version>
+    <jacoco.version>0.8.13</jacoco.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <project.scm.id>github</project.scm.id>
@@ -63,7 +63,7 @@
       <dependency>
         <groupId>ch.qos.logback</groupId>
         <artifactId>logback-classic</artifactId>
-        <version>1.5.17</version>
+        <version>1.5.32</version>
       </dependency>
       <dependency>
         <groupId>ch.qos.logback.access</groupId>
@@ -78,7 +78,7 @@
       <dependency>
         <groupId>com.amazonaws</groupId>
         <artifactId>aws-java-sdk-core</artifactId>
-        <version>1.12.782</version>
+        <version>1.12.797</version>
       </dependency>
       <dependency>
         <groupId>junit</groupId>
@@ -88,22 +88,22 @@
       <dependency>
         <groupId>org.mockito</groupId>
         <artifactId>mockito-core</artifactId>
-        <version>5.16.0</version>
+        <version>5.22.0</version>
       </dependency>
       <dependency>
         <groupId>org.testcontainers</groupId>
         <artifactId>elasticsearch</artifactId>
-        <version>1.20.5</version>
+        <version>1.21.3</version>
       </dependency>
       <dependency>
         <groupId>org.elasticsearch.client</groupId>
         <artifactId>elasticsearch-rest-client</artifactId>
-        <version>8.17.3</version>
+        <version>8.18.8</version>
       </dependency>
       <dependency>
         <groupId>co.elastic.clients</groupId>
         <artifactId>elasticsearch-java</artifactId>
-        <version>8.17.3</version>
+        <version>8.18.8</version>
       </dependency>
       <dependency>
         <groupId>org.jacoco</groupId>
@@ -180,20 +180,20 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-release-plugin</artifactId>
-          <version>3.1.1</version>
+          <version>3.3.1</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-compiler-plugin</artifactId>
-          <version>3.14.0</version>
+          <version>3.14.1</version>
         </plugin>
         <plugin>
           <artifactId>maven-surefire-plugin</artifactId>
-          <version>3.5.2</version>
+          <version>3.5.5</version>
         </plugin>
         <plugin>
           <artifactId>maven-failsafe-plugin</artifactId>
-          <version>3.5.2</version>
+          <version>3.5.5</version>
         </plugin>
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
@@ -203,12 +203,12 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-source-plugin</artifactId>
-          <version>3.3.1</version>
+          <version>3.4.0</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-javadoc-plugin</artifactId>
-          <version>3.11.2</version>
+          <version>3.12.0</version>
         </plugin>
         <plugin>
           <groupId>org.jacoco</groupId>
@@ -223,7 +223,7 @@
         <plugin>
           <groupId>org.owasp</groupId>
           <artifactId>dependency-check-maven</artifactId>
-          <version>12.1.0</version>
+          <version>12.1.3</version>
         </plugin>
       </plugins>
     </pluginManagement>
@@ -254,8 +254,8 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
         <configuration>
-          <source>17</source>
-          <target>17</target>
+          <source>21</source>
+          <target>21</target>
         </configuration>
       </plugin>
       <plugin>
