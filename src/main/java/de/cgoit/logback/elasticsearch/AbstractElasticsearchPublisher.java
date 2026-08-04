@@ -53,7 +53,7 @@ public abstract class AbstractElasticsearchPublisher<T> implements Runnable {
     private final AtomicLong workingTimestamp = new AtomicLong(0);
     private Long inactiveTimeLimit = 15 * 60 * 1000L;
 
-    protected AbstractElasticsearchPublisher(Context context, ErrorReporter errorReporter, Settings settings, ElasticsearchProperties properties, HttpRequestHeaders headers) throws IOException {
+    protected AbstractElasticsearchPublisher(Context context, ErrorReporter errorReporter, Settings settings, ElasticsearchProperties properties, HttpRequestHeaders headers) throws JacksonException {
         this.errorReporter = errorReporter;
         events = new LinkedList<>();
         lock = new Object();

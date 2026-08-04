@@ -4,10 +4,8 @@ import de.cgoit.logback.elasticsearch.util.AbstractPropertyAndEncoder;
 import tools.jackson.core.JacksonException;
 import tools.jackson.core.JsonGenerator;
 
-import java.io.IOException;
-
 class PropertySerializer<T> {
-    void serializeProperty(JsonGenerator jsonGenerator, T event, AbstractPropertyAndEncoder<T> propertyAndEncoder) throws IOException {
+    void serializeProperty(JsonGenerator jsonGenerator, T event, AbstractPropertyAndEncoder<T> propertyAndEncoder) throws JacksonException {
         String value = propertyAndEncoder.encode(event);
         if (propertyAndEncoder.allowEmpty() || value != null && !value.isEmpty()) {
             switch (propertyAndEncoder.getType()) {
