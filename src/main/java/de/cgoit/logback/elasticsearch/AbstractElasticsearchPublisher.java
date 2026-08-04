@@ -1,8 +1,6 @@
 package de.cgoit.logback.elasticsearch;
 
 import ch.qos.logback.core.Context;
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonGenerator;
 import de.cgoit.logback.elasticsearch.config.ElasticsearchProperties;
 import de.cgoit.logback.elasticsearch.config.HttpRequestHeaders;
 import de.cgoit.logback.elasticsearch.config.EsProperty;
@@ -13,6 +11,10 @@ import de.cgoit.logback.elasticsearch.writer.ElasticsearchWriter;
 import de.cgoit.logback.elasticsearch.writer.FailedEventsWriter;
 import de.cgoit.logback.elasticsearch.writer.LoggerWriter;
 import de.cgoit.logback.elasticsearch.writer.StdErrWriter;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.core.json.JsonFactory;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.io.IOException;
 import java.text.DateFormat;
@@ -38,6 +40,7 @@ public abstract class AbstractElasticsearchPublisher<T> implements Runnable {
     private final ElasticsearchWriter elasticWriter;
     private final List<AbstractPropertyAndEncoder<T>> propertyList;
     private final AbstractPropertyAndEncoder<T> indexPattern;
+    private final JsonMapper jsonMapper;
     private final JsonFactory jf;
     private final JsonGenerator jsonGenerator;
     private final JsonGenerator failedEventsJsonGenerator;
@@ -50,7 +53,7 @@ public abstract class AbstractElasticsearchPublisher<T> implements Runnable {
     private final AtomicLong workingTimestamp = new AtomicLong(0);
     private Long inactiveTimeLimit = 15 * 60 * 1000L;
 
-    public AbstractElasticsearchPublisher(Context context, ErrorReporter errorReporter, Settings settings, ElasticsearchProperties properties, HttpRequestHeaders headers) throws IOException {
+    protected AbstractElasticsearchPublisher(Context context, ErrorReporter errorReporter, Settings settings, ElasticsearchProperties properties, HttpRequestHeaders headers) throws IOException {
         this.errorReporter = errorReporter;
         events = new LinkedList<>();
         lock = new Object();
@@ -65,12 +68,12 @@ public abstract class AbstractElasticsearchPublisher<T> implements Runnable {
         }
         outputAggregator = configureOutputAggregator(settings, errorReporter, elasticWriter);
 
-        jf = new JsonFactory();
-        jf.setRootValueSeparator(null);
-        jsonGenerator = jf.createGenerator(outputAggregator);
+        jf = JsonFactory.builder().rootValueSeparator((String) null).build();
+        jsonMapper = JsonMapper.builder(jf).build();
+        jsonGenerator = jsonMapper.createGenerator(outputAggregator);
         if (settings.getFailedEventsLoggerName() != null) {
             failedEventsWriter = new FailedEventsWriter(settings.getFailedEventsLoggerName());
-            failedEventsJsonGenerator = jf.createGenerator(failedEventsWriter);
+            failedEventsJsonGenerator =  jsonMapper.createGenerator(failedEventsWriter);
         } else {
             failedEventsWriter = null;
             failedEventsJsonGenerator = null;
@@ -265,10 +268,10 @@ public abstract class AbstractElasticsearchPublisher<T> implements Runnable {
         }
     }
 
-    private void serializeIndexString(JsonGenerator gen, T event) throws IOException {
+    private void serializeIndexString(JsonGenerator gen, T event) throws JacksonException {
         gen.writeStartObject();
-        gen.writeObjectFieldStart("create");
-        gen.writeObjectField("_index", indexPattern.encode(event));
+        gen.writeObjectPropertyStart("create");
+        gen.writePOJOProperty("_index", indexPattern.encode(event));
         gen.writeEndObject();
         gen.writeEndObject();
     }

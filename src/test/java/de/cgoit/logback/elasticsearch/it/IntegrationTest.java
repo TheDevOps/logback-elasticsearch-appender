@@ -4,9 +4,9 @@ import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 
-import org.apache.http.HttpHost;
-import org.elasticsearch.client.RestClient;
+import org.apache.hc.core5.http.HttpHost;
 import org.junit.After;
 import org.junit.Before;
 import org.slf4j.Logger;
@@ -21,7 +21,8 @@ import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.HitsMetadata;
 import co.elastic.clients.json.jackson.JacksonJsonpMapper;
-import co.elastic.clients.transport.rest_client.RestClientTransport;
+import co.elastic.clients.transport.rest5_client.Rest5ClientTransport;
+import co.elastic.clients.transport.rest5_client.low_level.Rest5Client;
 import de.cgoit.logback.elasticsearch.ElasticsearchAppender;
 
 public abstract class IntegrationTest
@@ -49,7 +50,7 @@ public abstract class IntegrationTest
     }
 
     private static void configureElasticSearchAppender(String loggerName, String appenderName)
-        throws MalformedURLException
+        throws MalformedURLException, URISyntaxException
     {
         ch.qos.logback.classic.Logger logbackLogger =
             (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(loggerName);
@@ -61,7 +62,7 @@ public abstract class IntegrationTest
     }
 
     @Before
-    public void setupElasticSearchContainer() throws IOException
+    public void setupElasticSearchContainer() throws IOException, URISyntaxException
     {
         // Create the Elasticsearch container.
         String elasticImageName =
@@ -69,7 +70,7 @@ public abstract class IntegrationTest
         LOG.info("Using elasticsearch image: {}", elasticImageName);
         DockerImageName elasticImage = DockerImageName
             .parse(elasticImageName)
-            .withTag("8.17.3")
+            .withTag(System.getenv().getOrDefault("ELASTICSEARCH_IMAGE_TAG", "9.4.4"))
             .asCompatibleSubstituteFor("docker.elastic.co/elasticsearch/elasticsearch");
         container = new ElasticsearchContainer(elasticImage);
         // disable ssl, for our test this is more than enough
@@ -81,8 +82,8 @@ public abstract class IntegrationTest
         container.start();
 
         // Create the Elasticsearch client.
-        RestClient restClient = RestClient.builder(HttpHost.create(container.getHttpHostAddress())).build();
-        RestClientTransport transport = new RestClientTransport(restClient, new JacksonJsonpMapper());
+        Rest5Client restClient = Rest5Client.builder(HttpHost.create(container.getHttpHostAddress())).build();
+        Rest5ClientTransport transport = new Rest5ClientTransport(restClient, new JacksonJsonpMapper());
         IntegrationTest.client = new ElasticsearchClient(transport);
 
         configureElasticSearchAppender(ELASTICSEARCH_LOGGER_NAME, ELASTICSEARCH_APPENDER_NAME);

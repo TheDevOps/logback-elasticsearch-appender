@@ -2,7 +2,6 @@ package de.cgoit.logback.elasticsearch;
 
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.Context;
-import com.fasterxml.jackson.core.JsonGenerator;
 import de.cgoit.logback.elasticsearch.config.ElasticsearchProperties;
 import de.cgoit.logback.elasticsearch.config.HttpRequestHeaders;
 import de.cgoit.logback.elasticsearch.config.EsProperty;
@@ -11,6 +10,7 @@ import de.cgoit.logback.elasticsearch.util.AbstractPropertyAndEncoder;
 import de.cgoit.logback.elasticsearch.util.ClassicPropertyAndEncoder;
 import de.cgoit.logback.elasticsearch.util.ContextMapWriter;
 import de.cgoit.logback.elasticsearch.util.ErrorReporter;
+import tools.jackson.core.JsonGenerator;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -33,21 +33,21 @@ public class ClassicElasticsearchPublisher extends AbstractElasticsearchPublishe
 
     @Override
     protected void serializeCommonFields(JsonGenerator gen, ILoggingEvent event) throws IOException {
-        gen.writeObjectField("@timestamp", getTimestamp(event.getTimeStamp()));
+        gen.writePOJOProperty("@timestamp", getTimestamp(event.getTimeStamp()));
         String type = settings.getType();
         if (type != null) {
-            gen.writeObjectField("type", type);
+            gen.writePOJOProperty("type", type);
         }
 
         if (settings.isRawJsonMessage()) {
-            gen.writeFieldName("message");
+            gen.writeName("message");
             gen.writeRawValue(event.getFormattedMessage());
         } else {
             String formattedMessage = event.getFormattedMessage();
             if (formattedMessage != null && settings.getMaxMessageSize() > 0 && formattedMessage.length() > settings.getMaxMessageSize()) {
                 formattedMessage = formattedMessage.substring(0, settings.getMaxMessageSize()) + "... (abrv.)";
             }
-            gen.writeObjectField("message", formattedMessage);
+            gen.writePOJOProperty("message", formattedMessage);
         }
 
         if (settings.isIncludeMdc()) {
@@ -59,7 +59,7 @@ public class ClassicElasticsearchPublisher extends AbstractElasticsearchPublishe
                     {
                         writtenValue = writtenValue.substring(0, 999980) + "... (abrv.)";
                     }
-                    gen.writeObjectField(entry.getKey(), writtenValue);
+                    gen.writePOJOProperty(entry.getKey(), writtenValue);
                 }
             }
         }

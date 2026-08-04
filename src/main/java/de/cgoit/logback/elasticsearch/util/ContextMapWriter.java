@@ -1,9 +1,9 @@
 package de.cgoit.logback.elasticsearch.util;
 
 import ch.qos.logback.classic.spi.ILoggingEvent;
-import com.fasterxml.jackson.core.JsonGenerator;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.JsonGenerator;
 
-import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -44,7 +44,7 @@ public class ContextMapWriter {
     }
 
     @SuppressWarnings("unchecked")
-    public void writeContextMap(JsonGenerator gen, ILoggingEvent event) throws IOException {
+    public void writeContextMap(JsonGenerator gen, ILoggingEvent event) throws JacksonException {
         Object[] arguments = event.getArgumentArray();
         if (arguments == null || arguments.length == 0) {
             return;
@@ -55,7 +55,7 @@ public class ContextMapWriter {
             for (Map.Entry<String, Object> entry : indexes.entrySet()) {
                 String key = entry.getKey();
                 Object value = entry.getValue();
-                gen.writeObjectField(key, value);
+                gen.writePOJOProperty(key, value);
             }
         }
     }

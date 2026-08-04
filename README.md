@@ -12,7 +12,7 @@ This software is dual-licensed under the EPL 1.0 and LGPL 2.1, which is identica
 
 Usage
 =====
-Requires: Java 21+ and tested + compiled against logback 1.5.x and logback-access-common 2.0.x
+Requires: Java 21+ and tested + compiled against logback 1.5.x and logback-access-common 2.0.x. Uses Jackson 3.
 
 Include slf4j and logback as usual (depending on this library will *not* automatically pull them in).
 
