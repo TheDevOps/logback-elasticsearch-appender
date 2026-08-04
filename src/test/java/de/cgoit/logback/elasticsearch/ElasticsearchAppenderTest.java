@@ -16,7 +16,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
@@ -74,7 +74,7 @@ public class ElasticsearchAppenderTest {
 
     @Test
     public void should_throw_error_when_publisher_setup_fails_during_startup() {
-        ElasticsearchAppender appender = new ElasticsearchAppender() {
+        ElasticsearchAppender app = new ElasticsearchAppender() {
             @Override
             protected ClassicElasticsearchPublisher buildElasticsearchPublisher() throws IOException {
                 throw new IOException("Failed to start Publisher");
@@ -82,7 +82,7 @@ public class ElasticsearchAppenderTest {
         };
 
         try {
-            appender.start();
+            app.start();
         } catch (Exception e) {
             assertThat(e, IsInstanceOf.instanceOf(RuntimeException.class));
             assertThat(e.getMessage(), is("java.io.IOException: Failed to start Publisher"));
@@ -160,21 +160,21 @@ public class ElasticsearchAppenderTest {
 
     @Test
     public void should_create_error_reporter_with_same_context() {
-        ElasticsearchAppender appender = new ElasticsearchAppender() {
+        ElasticsearchAppender app = new ElasticsearchAppender() {
             @Override
             public Context getContext() {
                 return mockedContext;
             }
         };
 
-        ErrorReporter errorReporter = appender.getErrorReporter();
+        ErrorReporter ar = app.getErrorReporter();
 
-        assertThat(errorReporter.getContext(), is(mockedContext));
+        assertThat(ar.getContext(), is(mockedContext));
     }
 
     @Test
     public void should_delegate_setters_to_settings() throws MalformedURLException {
-        ElasticsearchAppender appender = new ElasticsearchAppender(settings);
+        ElasticsearchAppender app = new ElasticsearchAppender(settings);
         boolean includeCallerData = false;
         boolean errorsToStderr = false;
         boolean rawJsonMessage = false;
@@ -197,28 +197,28 @@ public class ElasticsearchAppenderTest {
         BasicAuthentication ba = new BasicAuthentication();
         int maxMessageSize = -1;
 
-        appender.setIncludeCallerData(includeCallerData);
-        appender.setSleepTime(aSleepTime);
-        appender.setSleepTimeAfterError(aSleepTimeAfterError);
-        appender.setReadTimeout(readTimeout);
-        appender.setErrorsToStderr(errorsToStderr);
-        appender.setLogsToStderr(errorsToStderr);
-        appender.setMaxQueueSize(maxQueueSize);
-        appender.setIndex(index);
-        appender.setType(type);
-        appender.setUrl(url);
-        appender.setLoggerName(logger);
-        appender.setErrorLoggerName(errorLogger);
-        appender.setFailedEventsLoggerName(failedEventsLogger);
-        appender.setMaxRetries(maxRetries);
-        appender.setConnectTimeout(connectTimeout);
-        appender.setRawJsonMessage(rawJsonMessage);
-        appender.setIncludeMdc(includeMdc);
-        appender.setExcludedMdcKeys(excludedMdcKeys);
-        appender.setEnableContextMap(enableContextMap);
-        appender.setMaxEvents(maxEvents);
-        appender.setAuthentication(ba);
-        appender.setMaxMessageSize(maxMessageSize);
+        app.setIncludeCallerData(includeCallerData);
+        app.setSleepTime(aSleepTime);
+        app.setSleepTimeAfterError(aSleepTimeAfterError);
+        app.setReadTimeout(readTimeout);
+        app.setErrorsToStderr(errorsToStderr);
+        app.setLogsToStderr(errorsToStderr);
+        app.setMaxQueueSize(maxQueueSize);
+        app.setIndex(index);
+        app.setType(type);
+        app.setUrl(url);
+        app.setLoggerName(logger);
+        app.setErrorLoggerName(errorLogger);
+        app.setFailedEventsLoggerName(failedEventsLogger);
+        app.setMaxRetries(maxRetries);
+        app.setConnectTimeout(connectTimeout);
+        app.setRawJsonMessage(rawJsonMessage);
+        app.setIncludeMdc(includeMdc);
+        app.setExcludedMdcKeys(excludedMdcKeys);
+        app.setEnableContextMap(enableContextMap);
+        app.setMaxEvents(maxEvents);
+        app.setAuthentication(ba);
+        app.setMaxMessageSize(maxMessageSize);
 
         verify(settings, times(1)).setReadTimeout(readTimeout);
         verify(settings, times(1)).setSleepTime(aSleepTime);
@@ -229,7 +229,7 @@ public class ElasticsearchAppenderTest {
         verify(settings, times(1)).setMaxQueueSize(maxQueueSize);
         verify(settings, times(1)).setIndex(index);
         verify(settings, times(1)).setType(type);
-        verify(settings, times(1)).setUrl(new URL(url));
+        verify(settings, times(1)).setUrl(URI.create(url).toURL());
         verify(settings, times(1)).setLoggerName(logger);
         verify(settings, times(1)).setErrorLoggerName(errorLogger);
         verify(settings, times(1)).setFailedEventsLoggerName(failedEventsLogger);

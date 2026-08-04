@@ -11,7 +11,7 @@ public abstract class AbstractPropertyAndEncoder<T> {
     private final EsProperty property;
     private final PatternLayoutBase<T> layout;
 
-    public AbstractPropertyAndEncoder(EsProperty property, Context context) {
+    protected AbstractPropertyAndEncoder(EsProperty property, Context context) {
         this.property = property;
 
         layout = getLayout();
@@ -24,13 +24,9 @@ public abstract class AbstractPropertyAndEncoder<T> {
     protected abstract PatternLayoutBase<T> getLayout();
 
     public String encode(T event) {
-        if (event instanceof ILoggingEvent)
+        if (event instanceof ILoggingEvent loggingEvent && property.getIgnoredLoggers().contains(loggingEvent.getLoggerName()))
         {
-            ILoggingEvent loggingEvent = (ILoggingEvent) event;
-            if (property.getIgnoredLoggers().contains(loggingEvent.getLoggerName()))
-            {
-                return null;
-            }
+            return null;
         }
         return layout.doLayout(event);
     }
