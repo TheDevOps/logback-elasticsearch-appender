@@ -2,7 +2,6 @@ package de.cgoit.logback.elasticsearch;
 
 import ch.qos.logback.access.common.spi.IAccessEvent;
 import ch.qos.logback.core.Context;
-import com.fasterxml.jackson.core.JsonGenerator;
 import de.cgoit.logback.elasticsearch.config.ElasticsearchProperties;
 import de.cgoit.logback.elasticsearch.config.HttpRequestHeaders;
 import de.cgoit.logback.elasticsearch.config.EsProperty;
@@ -10,6 +9,7 @@ import de.cgoit.logback.elasticsearch.config.Settings;
 import de.cgoit.logback.elasticsearch.util.AbstractPropertyAndEncoder;
 import de.cgoit.logback.elasticsearch.util.AccessPropertyAndEncoder;
 import de.cgoit.logback.elasticsearch.util.ErrorReporter;
+import tools.jackson.core.JsonGenerator;
 
 import java.io.IOException;
 
@@ -26,10 +26,10 @@ public class AccessElasticsearchPublisher extends AbstractElasticsearchPublisher
 
     @Override
     protected void serializeCommonFields(JsonGenerator gen, IAccessEvent event) throws IOException {
-        gen.writeObjectField("@timestamp", getTimestamp(event.getTimeStamp()));
+        gen.writePOJOProperty("@timestamp", getTimestamp(event.getTimeStamp()));
         String type = settings.getType();
         if (type != null) {
-            gen.writeObjectField("type", type);
+            gen.writePOJOProperty("type", type);
         }
     }
 }

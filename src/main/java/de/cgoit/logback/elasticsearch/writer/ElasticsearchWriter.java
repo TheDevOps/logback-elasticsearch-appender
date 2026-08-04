@@ -1,12 +1,12 @@
 package de.cgoit.logback.elasticsearch.writer;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectReader;
 import de.cgoit.logback.elasticsearch.config.HttpRequestHeader;
 import de.cgoit.logback.elasticsearch.config.HttpRequestHeaders;
 import de.cgoit.logback.elasticsearch.config.Settings;
 import de.cgoit.logback.elasticsearch.dto.Response;
 import de.cgoit.logback.elasticsearch.util.ErrorReporter;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectReader;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -78,7 +78,7 @@ public class ElasticsearchWriter implements SafeWriter {
     @Override
     public Set<Integer> sendData() throws IOException {
         Set<Integer> failures = null;
-        if (sendBuffer.length() <= 0) {
+        if (sendBuffer.isEmpty()) {
             return failures;
         }
 
@@ -135,7 +135,7 @@ public class ElasticsearchWriter implements SafeWriter {
 
     @Override
     public boolean hasPendingData() {
-        return sendBuffer.length() != 0;
+        return !sendBuffer.isEmpty();
     }
 
     public void checkBufferExceeded() {

@@ -9,7 +9,7 @@ import de.cgoit.logback.elasticsearch.util.ErrorReporter;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
 
 public abstract class AbstractElasticsearchAppender<T> extends UnsynchronizedAppenderBase<T> {
 
@@ -19,22 +19,22 @@ public abstract class AbstractElasticsearchAppender<T> extends UnsynchronizedApp
     protected ErrorReporter errorReporter;
     protected HttpRequestHeaders headers;
 
-    public AbstractElasticsearchAppender() {
-        this.settings = new Settings();
-        this.headers = new HttpRequestHeaders();
+    protected AbstractElasticsearchAppender() {
+        settings = new Settings();
+        headers = new HttpRequestHeaders();
     }
 
-    public AbstractElasticsearchAppender(Settings settings) {
+    protected AbstractElasticsearchAppender(Settings settings) {
         this.settings = settings;
-        this.headers = new HttpRequestHeaders();
+        headers = new HttpRequestHeaders();
     }
 
     @Override
     public void start() {
         super.start();
-        this.errorReporter = getErrorReporter();
+        errorReporter = getErrorReporter();
         try {
-            this.publisher = buildElasticsearchPublisher();
+            publisher = buildElasticsearchPublisher();
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }
@@ -137,7 +137,8 @@ public abstract class AbstractElasticsearchAppender<T> extends UnsynchronizedApp
     }
 
     public void setUrl(String url) throws MalformedURLException {
-        settings.setUrl(new URL(url));
+        URI uri = URI.create(url);
+        settings.setUrl(uri.toURL());
     }
 
     public void setLoggerName(String logger) {
@@ -153,7 +154,7 @@ public abstract class AbstractElasticsearchAppender<T> extends UnsynchronizedApp
     }
 
     public void setHeaders(HttpRequestHeaders httpRequestHeaders) {
-        this.headers = httpRequestHeaders;
+        headers = httpRequestHeaders;
     }
 
     public void setRawJsonMessage(boolean rawJsonMessage) {
